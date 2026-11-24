@@ -1,0 +1,45 @@
+# Nome que aparecerá na aba "Actions" do seu repositório
+name: Gerar Animacao Cobrinha
+
+# Gatilhos: define QUANDO esse código vai rodar
+on:
+  # Roda automaticamente todo dia à meia-noite (horário UTC)
+  schedule:
+    - cron: "0 0 * * *"
+  
+  # Permite que você aperte um botão para rodar manualmente agora mesmo
+  workflow_dispatch:
+  
+  # Roda sempre que você atualizar a branch main
+  push:
+    branches:
+      - main
+
+# Trabalhos que o servidor do GitHub vai executar
+jobs:
+  generate:
+    # Define o sistema operacional da máquina virtual gratuita do GitHub
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      # Passo 1: Puxa uma ação pronta da comunidade que desenha a cobrinha
+      - name: Gerar arquivo SVG da cobrinha
+        uses: Platane/snk/svg-only@v3
+        with:
+          # Pega o seu nome de usuário dinamicamente
+          github_user_name: ${{ github.repository_owner }}
+          # Define onde o arquivo será salvo e qual o tema de cores (github-dark)
+          outputs: |
+            dist/github-contribution-grid-snake.svg
+            dist/github-contribution-grid-snake-dark.svg?palette=github-dark
+
+      # Passo 2: Salva o arquivo gerado em uma branch separada chamada "output"
+      - name: Enviar imagem para a branch output
+        uses: crazy-max/ghaction-github-pages@v3.1.0
+        with:
+          target_branch: output
+          build_dir: dist
+        env:
+          # Usa o token de segurança automático que liberamos no Passo 1
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
